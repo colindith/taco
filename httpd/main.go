@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 	"taco/httpd/handler"
 	"taco/httpd/handler/stock"
+	"taco/packages/gredis"
 	"taco/platform/newsfeed"
 
 	"github.com/gin-gonic/gin"
@@ -15,9 +16,12 @@ import (
 var db *gorm.DB
 var err error
 
-/////////////////////////////////////////////////////
+func init() {
+	gredis.Setup()
+}
 
 func HomePage(c *gin.Context) {
+
 	c.JSON(200, gin.H{
 		"message": "Hello World ~~",
 	})
@@ -66,6 +70,8 @@ func main() {
 	db.AutoMigrate(&stock.Price{})
 	r := gin.Default()
 
+	// gredis.init()
+
 	// template test
 	// r.GET("/people/", handler.GetPeople(db))
 
@@ -90,6 +96,9 @@ func main() {
 	r.GET("/ping", handler.PingGet())
 	r.GET("/newsfeed", handler.NewsfeedGet(feed))
 	r.POST("/newsfeed", handler.NewsfeedPost(feed))
+
+	r.POST("/BrokerSend", handler.BrokerSend())
+	r.POST("/BrokerReceive", handler.BrokerReceive())
 
 	r.Run()
 }

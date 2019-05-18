@@ -3,6 +3,7 @@ package handler
 import (
 	"fmt"
 	// "net/http"
+	// "taco/packages/gredis"
 
 	"github.com/gin-gonic/gin"
 	"github.com/jinzhu/gorm"
@@ -41,6 +42,7 @@ func UpdatePerson(db *gorm.DB) gin.HandlerFunc {
 func CreatePerson(db *gorm.DB) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var person Person
+		// var cache string
 		c.BindJSON(&person)
 		db.Create(&person)
 		c.JSON(200, person)
