@@ -20,3 +20,19 @@ func BrokerReceive() gin.HandlerFunc {
 		c.Status(http.StatusNoContent)
 	}
 }
+
+func BroadcastMessage() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		msg := c.Param("message")
+		broker.BroadcastMessage(msg)
+		c.Status(http.StatusNoContent)
+	}
+}
+
+func Consumer() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		username := c.Param("username")
+		broker.Consumer(username)
+		c.Status(http.StatusNoContent)
+	}
+}

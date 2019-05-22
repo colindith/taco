@@ -100,5 +100,12 @@ func main() {
 	r.POST("/BrokerSend", handler.BrokerSend())
 	r.POST("/BrokerReceive", handler.BrokerReceive())
 
+	r.POST("/broadcast/:message", handler.BroadcastMessage())
+	r.POST("/consumer/*username", handler.Consumer())
+
+	// r.GET("/pathtest/:name", func(){
+	// 	name
+	// })
+
 	r.Run()
 }

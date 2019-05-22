@@ -8,13 +8,7 @@ import (
 	"github.com/streadway/amqp"
 )
 
-func failOnError(err error, msg string) {
-	if err != nil {
-		log.Fatalf("%s: %s", msg, err)
-	}
-}
-
-func Receive() {
+func Consumer(username string) {
 	rabbitmqHost := os.Getenv("RABBITMQ_HOST")
 	rabbitmqUser := os.Getenv("RABBITMQ_DEFAULT_USER")
 	rabbitmqPass := os.Getenv("RABBITMQ_DEFAULT_PASS")
@@ -28,15 +22,34 @@ func Receive() {
 	failOnError(err, "Failed to open a channel")
 	defer ch.Close()
 
+	err = ch.ExchangeDeclare(
+		"logs",   // name
+		"fanout", // type
+		true,     // durable
+		false,    // auto-deleted
+		false,    // internal
+		false,    // no-wait
+		nil,      // arguments
+	)
+	failOnError(err, "Failed to declare an exchange")
+
 	q, err := ch.QueueDeclare(
-		"hello", // name
-		false,   // durable
-		false,   // delete when unused
-		false,   // exclusive
-		false,   // no-wait
-		nil,     // arguments
+		"",    // name
+		false, // durable
+		false, // delete when unused
+		true,  // exclusive
+		false, // no-wait
+		nil,   // arguments
 	)
 	failOnError(err, "Failed to declare a queue")
+
+	err = ch.QueueBind(
+		q.Name, // queue name
+		"",     // routing key
+		"logs", // exchange
+		false,
+		nil)
+	failOnError(err, "Failed to bind a queue")
 
 	msgs, err := ch.Consume(
 		q.Name, // queue
@@ -49,14 +62,14 @@ func Receive() {
 	)
 	failOnError(err, "Failed to register a consumer")
 
-	// forever := make(chan bool)
+	forever := make(chan bool)
 
 	go func() {
 		for d := range msgs {
-			log.Printf("Received a message: %s", d.Body)
+			log.Printf(" [%s] receive the msg: %s", username, d.Body)
 		}
 	}()
 
-	log.Printf(" [*] Waiting for messages. To exit press CTRL+C")
-	// <-forever
+	log.Printf(" [*] Waiting for logs. To exit press CTRL+C")
+	<-forever
 }
