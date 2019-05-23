@@ -4,14 +4,12 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
-	"strings"
 	"taco/httpd/handler"
 	"taco/httpd/handler/stock"
+	"taco/httpd/user"
 	"taco/packages/gredis"
 	"taco/platform/newsfeed"
-	"time"
 
-	"github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/postgres"
@@ -72,6 +70,7 @@ func main() {
 	db.AutoMigrate(&handler.Person{})
 	db.AutoMigrate(&stock.Product{})
 	db.AutoMigrate(&stock.Price{})
+	db.AutoMigrate(&user.User{})
 	r := gin.Default()
 
 	// gredis.init()
@@ -108,10 +107,12 @@ func main() {
 	r.POST("/consumer/*username", handler.Consumer())
 
 	{
-		r.POST("/login", login)
+		user_group := r.Group("/user")
+		user_group.POST("/registry", user.Registry(db))
+		user_group.POST("/login", user.Login(db))
 		// r.GET("/logout", logout)
 		private := r.Group("/private")
-		private.Use(AuthRequired())
+		private.Use(user.AuthRequired())
 		private.POST("/auth_test/:token", func(c *gin.Context) {
 			c.JSON(http.StatusOK, "get private data~~~!!")
 		})
@@ -121,90 +122,4 @@ func main() {
 	}
 
 	r.Run()
-}
-
-const (
-	// make this const
-	mySigningKey = "WOW,MuchShibe,ToDogge"
-)
-
-func respondWithError(code int, message string, c *gin.Context) {
-	resp := map[string]string{"error": message}
-	c.JSON(code, resp)
-	c.Abort()
-}
-
-func AuthRequired() gin.HandlerFunc {
-	return func(c *gin.Context) {
-		authorization, exists := c.Request.Header["Authorization"]
-
-		if exists != true {
-			respondWithError(401, "Error in parsing: "+err.Error(), c)
-			return
-		}
-		is_authenticated := parseJWT(strings.Split(authorization[0], " ")[1])
-
-		if is_authenticated == false {
-			// c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid session token"})
-			respondWithError(401, "Invalid Authorization", c)
-			return
-		} else {
-			c.Next()
-		}
-	}
-}
-
-// curl -X POST -F 'username=hello' -F 'password=itsme' 'http://localhost:8080/login'
-// curl -X POST -H "Authorization: JWT $token" 'http://localhost:8080/private/head_auth/'
-
-func login(c *gin.Context) {
-	// session := sessions.Default(c)
-	username := c.PostForm("username")
-	password := c.PostForm("password")
-
-	if strings.Trim(username, " ") == "" || strings.Trim(password, " ") == "" {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Parameters can't be empty"})
-		return
-	}
-	// check if username in db
-	if username == "hello" && password == "itsme" {
-		// session.Set("user", username) //In real world usage you'd set this to the users ID
-		// err := session.Save()
-		token, err := newJWT(username)
-		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate JWT token: " + err.Error()})
-		} else {
-			c.JSON(http.StatusOK, gin.H{"token": token})
-		}
-	}
-}
-
-func newJWT(username string) (string, error) {
-	// Create the token
-	token := jwt.New(jwt.SigningMethodHS256)
-	// Set some claims
-	claims := make(jwt.MapClaims)
-	claims["username"] = "username"
-	claims["exp"] = time.Now().Add(time.Hour * 72).Unix()
-	token.Claims = claims
-	// Sign and get the complete encoded token as a string
-	// TODO: here should use byte array directly
-	tokenString, err := token.SignedString([]byte(mySigningKey))
-	return tokenString, err
-}
-
-func parseJWT(myToken string) bool {
-	token, err := jwt.Parse(myToken, func(token *jwt.Token) (interface{}, error) {
-		return []byte(mySigningKey), nil
-	})
-	if err != nil {
-		fmt.Println("Error occured.  parseJWT" + err.Error())
-		return false
-	} else if token.Valid {
-		fmt.Println("Your token is valid.  I like your style.")
-		return true
-	} else {
-		fmt.Println("This token is terrible!  I cannot accept this.")
-		return false
-	}
 }

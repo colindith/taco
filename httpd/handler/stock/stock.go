@@ -69,7 +69,7 @@ func GetProduct(db *gorm.DB) gin.HandlerFunc {
 		}
 	}
 }
-func GetALlProduct(db *gorm.DB) gin.HandlerFunc {
+func GetAllProduct(db *gorm.DB) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var products []Product
 		if err := db.Find(&products).Error; err != nil {
