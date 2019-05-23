@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"os"
 	"taco/httpd/handler"
 	"taco/httpd/handler/stock"
 	"taco/httpd/user"
@@ -59,10 +60,15 @@ func PathParameters(c *gin.Context) {
 }
 
 func main() {
-	// NOTE: See we’re using = to assign the global var
-	// instead of := which would assign it only in this function
-	//db, err = gorm.Open("sqlite3", "./gorm.db")
-	db, err = gorm.Open("postgres", "host=taco-db port=5432 user=taco dbname=taco password=pass1234 sslmode=disable")
+	dbInfoStr := fmt.Sprintf(
+		"host=%s port=%s user=%s dbname=%s password=%s sslmode=disable",
+		os.Getenv("POSTGRES_HOST"),
+		os.Getenv("POSTGRE_PORT"),
+		os.Getenv("POSTGRES_USERNAME"),
+		os.Getenv("POSTGRES_DB"),
+		os.Getenv("POSTGRES_PASSWORD"),
+	)
+	db, err = gorm.Open("postgres", dbInfoStr)
 	if err != nil {
 		fmt.Println(err)
 	}
