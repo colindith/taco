@@ -62,11 +62,11 @@ func PathParameters(c *gin.Context) {
 func main() {
 	dbInfoStr := fmt.Sprintf(
 		"host=%s port=%s user=%s dbname=%s password=%s sslmode=disable",
-		os.Getenv("POSTGRES_HOST"),
-		os.Getenv("POSTGRE_PORT"),
-		os.Getenv("POSTGRES_USERNAME"),
-		os.Getenv("POSTGRES_DB"),
-		os.Getenv("POSTGRES_PASSWORD"),
+		os.Getenv("TACO_POSTGRES_HOST"),
+		os.Getenv("TACO_POSTGRE_PORT"),
+		os.Getenv("TACO_POSTGRES_USERNAME"),
+		os.Getenv("TACO_POSTGRES_DB"),
+		os.Getenv("TACO_POSTGRES_PASSWORD"),
 	)
 	db, err = gorm.Open("postgres", dbInfoStr)
 	if err != nil {
@@ -77,6 +77,7 @@ func main() {
 	db.AutoMigrate(&stock.Product{})
 	db.AutoMigrate(&stock.Price{})
 	db.AutoMigrate(&user.User{})
+
 	r := gin.Default()
 
 	// gredis.init()
