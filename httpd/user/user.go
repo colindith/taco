@@ -122,8 +122,8 @@ func AuthRequired() gin.HandlerFunc {
 	}
 }
 
-// curl -X POST -d '{"username":"peter2","password":"123456"}' 'http://localhost:8080/user/login'
-// curl -X POST -H "Authorization: JWT $token" 'http://localhost:8080/private/head_auth/'
+// curl -X POST -d '{"username":"peter2","password":"123456"}' 'http://localhost:8000/user/login'
+// curl -X POST -H "Authorization: JWT $token" 'http://localhost:8000/private/head_auth/'
 
 func newJWT(username string) (string, error) {
 	// Create the token

@@ -6,6 +6,7 @@ require (
 	github.com/RichardKnop/machinery v1.6.4
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/garyburd/redigo v1.6.0
+	github.com/gin-contrib/cors v1.3.0
 	github.com/gin-contrib/sessions v0.0.0-20190512062852-3cb4c4f2d615
 	github.com/gin-gonic/contrib v0.0.0-20190510065052-87e961e51ccc
 	github.com/gin-gonic/gin v1.4.0

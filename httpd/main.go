@@ -10,7 +10,9 @@ import (
 	"taco/httpd/user"
 	"taco/packages/gredis"
 	"taco/platform/newsfeed"
+	"time"
 
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/postgres"
@@ -79,6 +81,7 @@ func main() {
 	db.AutoMigrate(&user.User{})
 
 	r := gin.Default()
+	r.Use(cors.Default())
 
 	// gredis.init()
 
@@ -128,5 +131,14 @@ func main() {
 		})
 	}
 
-	r.Run()
+	// r.Run()
+	s := &http.Server{
+		Addr:           ":8000",
+		Handler:        r,
+		ReadTimeout:    10 * time.Second,
+		WriteTimeout:   10 * time.Second,
+		MaxHeaderBytes: 1 << 20,
+	}
+	// listening at 8000 port
+	s.ListenAndServe()
 }
