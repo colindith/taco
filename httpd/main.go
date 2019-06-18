@@ -116,6 +116,13 @@ func main() {
 	r.POST("/broadcast/:message", handler.BroadcastMessage())
 	r.POST("/consumer/*username", handler.Consumer())
 
+
+	// Price & Product
+	// TODO: add to private group
+	// curl -X GET 'http://localhost:8000/product/'
+	r.GET("/product/", stock.GetAllProduct(db))
+	r.GET("/price/:code", stock.GetPrice(db))
+
 	{
 		user_group := r.Group("/user")
 		user_group.POST("/registry", user.Registry(db))

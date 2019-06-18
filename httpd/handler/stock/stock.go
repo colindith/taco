@@ -12,19 +12,20 @@ import (
 )
 
 type Product struct {
+	gorm.Model
 	ID   uint   `json:"id"`
+	Code string `json:"code"`
 	Name string `json:"name"`
 }
 
 type Price struct {
-	ID      uint   `json:"id"`
-	product string `json:"product"`
-	time    time.Time
-	open    float64
-	high    float64
-	low     float64
-	close   float64
-	volume  uint
+	gorm.Model
+	ID         uint       `json:"id" gorm:"AUTO_INCREMENT"`
+	Product    Product    `gorm:"foreignkey:ProductID"`
+	ProductID  uint       `json:"product"`
+	Time       time.Time  `json:"time"`
+	Price      float64    `json:"price"`
+	Volume     uint       `json:"volume"`
 }
 
 func DeleteProduct(db *gorm.DB) gin.HandlerFunc {
@@ -77,6 +78,18 @@ func GetAllProduct(db *gorm.DB) gin.HandlerFunc {
 			fmt.Println(err)
 		} else {
 			c.JSON(200, products)
+		}
+	}
+}
+func GetPrice(db *gorm.DB) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		code := c.Param("code")
+		var prices []Price
+		if err := db.Joins("JOIN products ON products.id = prices.product_id").Where("products.code = ?", code).Find(&prices).Error; err != nil {
+			c.AbortWithStatus(404)
+			fmt.Println(err)
+		} else {
+			c.JSON(200, prices)
 		}
 	}
 }
