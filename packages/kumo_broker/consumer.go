@@ -1,16 +1,25 @@
 package main
 
+// import "fmt"
+
+// func main() {
+// 	fmt.Println("123456789")
+// }
+
 import (
+	"encoding/json"
 	"fmt"
 	"log"
 	"os"
+	// "reflect"
+	// "time"
 
 	"github.com/streadway/amqp"
 )
+
 // The listener daemon process for Kumo message
-type Consumer struct {
-  
-}
+// type Consumer struct {
+// }
 
 func failOnError(err error, msg string) {
 	if err != nil {
@@ -33,13 +42,13 @@ func main() {
 	defer ch.Close()
 
 	err = ch.ExchangeDeclare(
-		"kumo_broadcast",   // name
-		"fanout", // type
-		true,     // durable
-		false,    // auto-deleted
-		false,    // internal
-		false,    // no-wait
-		nil,      // arguments
+		"kumo_broadcast", // name
+		"fanout",         // type
+		true,             // durable
+		false,            // auto-deleted
+		false,            // internal
+		false,            // no-wait
+		nil,              // arguments
 	)
 	failOnError(err, "Failed to declare an exchange")
 
@@ -54,8 +63,8 @@ func main() {
 	failOnError(err, "Failed to declare a queue")
 
 	err = ch.QueueBind(
-		q.Name, // queue name
-		"",     // routing key
+		q.Name,           // queue name
+		"",               // routing key
 		"kumo_broadcast", // exchange
 		false,
 		nil)
@@ -76,10 +85,21 @@ func main() {
 
 	go func() {
 		for msg := range msgs {
-			log.Printf(" [%s] receive the msg: %s", msg.Body)
+			var price map[string]interface{}
+			// log.Printf(" receive the msg: %s", msg.Body)
+			// log.Printf("msg body type: %s", reflect.TypeOf(msg.Body))
+			err := json.Unmarshal(msg.Body, &price)
+			if err != nil {
+				log.Printf("decode msg error", err.Error())
+			}
+			log.Printf("json.Unmarshal(byte_data, &data) %s", price)
+			log.Printf("%s", price["product_id"].(float64))
+			log.Printf("%s", price["price"].(float64))
+			log.Printf("%s", price["time"])
+			log.Printf("%s", uint(price["volume"].(float64)))
 		}
 	}()
 
-	log.Printf(" [*] Waiting for logs. To exit press CTRL+C")
+	// log.Printf(" [*] Waiting for logs. To exit press CTRL+C")
 	<-forever
 }
